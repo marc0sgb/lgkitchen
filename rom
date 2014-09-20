@@ -1,0 +1,268 @@
+#!/bin/bash
+
+INPUT="/tmp/datos";
+VERSION=$(cat datos/version);
+
+brom(){
+dialog --title "Cocina LG G3 $VERSION" --msgbox "Seleccione la rom que desea borrar:" 6 100
+dialog --title "Cocina LG G3 $VERSION" --fselect misroms/ 14 48 2>$INPUT;
+rmdir=$(cat $INPUT)
+dialog --title "Cocina LG G3 $VERSION" --msgbox "Informacion de la rom:" 6 100
+dialog --textbox $rmdir/info 100 100
+dialog --title "Cocina LG G3 $VERSION"  --yesno "¿Esta seguro que desea borrar la rom?" 6 100
+case $? in
+   0)rm -rf $rmdir
+   principal;;
+   1)principal;;
+   255)principal;;
+esac
+
+
+}
+
+rroms(){
+
+if [ -f datos/directorios ];then 
+directorio=$(cat datos/directorios);
+dialog --title "Cocina LG G3 $VERSION" --msgbox "Informacion de la rom:" 6 100
+dialog --textbox $directorio/info 100 100
+dialog --title "Cocina LG G3 $VERSION"  --yesno "¿Esta seguro que desea resetear su rom?" 6 100
+
+	case $? in
+   0) mkdir -p $directorio
+      rm -rf $directorio/*
+      dialog --title "Cocina LG G3 $VERSION" --msgbox "Directorio reseteado y establecido para trabajar en el" 5 100
+      dialog --title "Cocina LG G3 $VERSION" --inputbox "Establezca el nombre de su ROM" 5 100 2>$INPUT;
+		nombre=$(cat $INPUT)
+		dialog --title "Cocina LG G3 $VERSION" --inputbox "Establezca la version ROM" 5 100 2>$INPUT;
+		romv=$(cat $INPUT)
+		dialog --title "Cocina LG G3 $VERSION" --inputbox "Establezca el autor de la rom" 5 100 2>$INPUT;
+		autor=$(cat $INPUT)
+		dialog --title "Cocina LG G3 $VERSION" --inputbox "Introduzca una breve descripcion" 50 100 2>$INPUT;
+		desc=$(cat $INPUT)
+		dialog --title "Cocina LG G3 $VERSION" --msgbox "Establezca el directorio para trabajar con la rom" 5 100 
+      echo $nombre >> $directorio/info
+      echo $romv >> $directorio/info
+      echo $autor >> $directorio/info
+      echo $desc >> $directorio/info
+      echo $directorio >> $directorio/info
+      echo $directorio > datos/directorios
+      dialog --title "Cocina LG G3 $VERSION"  --textbox "Informacion:" 6 100
+      dialog --textbox $directorio/info 100 100
+		principal;;
+		
+   1) 
+   principal;;
+   
+   255) 
+   principal;;
+   esac
+else
+dialog --msgbox "Actualmente no esta trabajando con ninguna rom" 6 100;
+principal
+fi
+}
+
+lroms(){
+rm datos/liroms;
+ls misroms >> datos/liroms;
+n=$(wc -l datos/liroms | cut -f 1 -d " ");
+dialog --msgbox "Actualmente tiene $n proyectos" 6 100;
+
+i=1;
+u=1;
+
+while read rom
+do
+
+COUNT=$[COUNT+1]
+
+roms[$i]="$i \"$rom\" "
+
+
+nombre="`sed -n 1p misroms/$rom/info`"
+nroms[$i]=$nombre
+echo $nombre;
+carp="`sed -n 5p misroms/$rom/info`"
+croms[$i]=$carp
+
+ROMS="${ROMS} ${COUNT} $nombre off "
+
+i=$(( $i + 1 ))
+
+done < datos/liroms
+
+
+cmd=(dialog --title 'Menu principal' --backtitle "Cocina LG G3 $VERSION"  --radiolist "Seleccione una rom:" 22 76 16);
+options=(${ROMS})
+menu=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty )
+
+case $? in
+0)
+
+dialog --title "Cocina LG G3 $VERSION" --msgbox "Informacion de ${nroms[$menu]}: " 5 50 
+dialog --textbox ${croms[$menu]}/info 100 100
+dialog --title "Cocina LG G3 $VERSION"  --yesno "¿Desea editar la informacion?" 6 100 
+case $? in
+   0) 
+      dialog --title "Cocina LG G3 $VERSION" --inputbox "Establezca el nombre de su ROM" 5 100 2>$INPUT;
+		nombre=$(cat $INPUT)
+		dialog --title "Cocina LG G3 $VERSION" --inputbox "Establezca la version ROM" 5 100 2>$INPUT;
+		romv=$(cat $INPUT)
+		dialog --title "Cocina LG G3 $VERSION" --inputbox "Establezca el autor de la rom" 5 100 2>$INPUT;
+		autor=$(cat $INPUT)
+		dialog --title "Cocina LG G3 $VERSION" --inputbox "Introduzca una breve descripcion" 50 100 2>$INPUT;
+		desc=$(cat $INPUT)
+      echo $nombre > ${croms[$menu]}/info
+      echo $romv >> ${croms[$menu]}/info
+      echo $autor >> ${croms[$menu]}/info
+      echo $desc >> ${croms[$menu]}/info
+      echo ${croms[$menu]} >> ${croms[$menu]}/info
+      dialog --title "Cocina LG G3 $VERSION"  --textbox "Informacion:" 6 100
+      dialog --textbox ${croms[$menu]}/info 100 100
+		principal;;
+		
+   1) principal;;
+   
+   255) principal;;
+   esac
+
+;;
+1)
+	unset menu
+	unset options
+	unset cmd
+	unset ROMS  
+principal;;
+255)
+	unset menu
+	unset options
+	unset cmd
+	unset ROMS  
+	principal;;
+esac
+}
+
+
+datos(){
+
+
+if [ -f datos/directorios ];then 
+
+directorio=$(cat datos/directorios);
+dialog --title "Cocina LG G3 $VERSION"  --textbox "Informacion de la rom:" 6 100
+dialog --textbox $directorio/info 100 100
+principal
+
+else
+dialog --msgbox "Actualmente no esta trabajando con ninguna rom" 6 100;
+principal
+fi
+
+}
+
+
+carpeta(){
+#Comprueba si esta definida la carpeta
+if [ -z ${directorio} ]; then
+
+
+dialog --title "Cocina LG G3 $VERSION" --fselect misroms/ 14 48 2>$INPUT;
+directorio=$(cat $INPUT)
+echo $directorio > datos/directorios
+
+#Comprueba si el directorio ya existe
+if [ -d $directorio ] 
+	then
+	dialog --title "Cocina LG G3 $VERSION"  --textbox "Informacion:" 6 100
+   dialog --textbox $directorio/info 100 100
+	principal
+	
+	else
+	
+	dialog --title "Cocina LG G3 $VERSION"  --yesno "El directorio no existe, ¿Desea crearlo?" 6 100 
+	
+	case $? in
+   0) mkdir -p $directorio
+      dialog --title "Cocina LG G3 $VERSION" --msgbox "Directorio creado y establecido para trabajar en el" 5 50
+      dialog --title "Cocina LG G3 $VERSION" --inputbox "Establezca el nombre de su ROM" 5 100 2>$INPUT;
+		nombre=$(cat $INPUT)
+		dialog --title "Cocina LG G3 $VERSION" --inputbox "Establezca la version ROM" 5 100 2>$INPUT;
+		romv=$(cat $INPUT)
+		dialog --title "Cocina LG G3 $VERSION" --inputbox "Establezca el autor de la rom" 5 100 2>$INPUT;
+		autor=$(cat $INPUT)
+		dialog --title "Cocina LG G3 $VERSION" --inputbox "Introduzca una breve descripcion" 50 100 2>$INPUT;
+		desc=$(cat $INPUT)
+		echo $directorio > datos/directorios
+      echo $nombre >> $directorio/info
+      echo $romv >> $directorio/info
+      echo $autor >> $directorio/info
+      echo $desc >> $directorio/info
+      echo $directorio >> $directorio/info
+      dialog --title "Cocina LG G3 $VERSION"  --textbox "Informacion:" 6 100
+      dialog --textbox $directorio/info 100 100
+		principal;;
+		
+   1) principal;;
+   
+   255) principal;;
+   esac
+   
+   
+	fi 
+else
+#Cambia el directorio de trabajo
+ dialog --textbox $directorio/info 100 100
+ dialog --title "Cocina LG G3 $VERSION"  --yesno "El directorio de trabajo definido es $directorio ¿Desea cambiarlo?" 6 100
+ 
+ case $? in
+   0) unset directorio
+   rm datos/directorios
+   carpeta;;
+		
+   1) principal;;
+   
+   255) principal;;
+   esac
+fi
+
+};	
+
+
+
+#Menu principal
+principal() {
+
+dialog --title 'Configuracion' --backtitle "Cocina LG G3 $VERSION"  --radiolist "Seleccione la opcion que desee:" 25 100 100 \
+        1 "Crear \ Seleccionar ROM" on \
+        2 "Ver datos ROM"  off \
+        3 "Listar ROMS" off \
+        4 "Resetear ROM" off\
+        5 "Borrar ROM" off\
+        6 "Volver" off 2>$INPUT
+case $? in
+   0) 
+   menu=$(cat $INPUT)
+     case $menu in
+	1) carpeta;;
+	2) datos;;
+	3) lroms;;
+	4) rroms;;
+	5) brom;;
+	6) bash menu;;
+esac
+;;
+		
+   1)  bash menu;;
+   
+   255) bash menu;;
+   esac
+
+
+
+
+}
+
+
+principal
+       

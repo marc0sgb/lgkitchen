@@ -1,0 +1,30 @@
+#!/bin/bash 
+
+INPUT="/tmp/datos";
+VERSION=$(cat version);
+
+#Elegir firmware para trabajar
+firmware(){
+dialog --title 'Trabajemos con firmware' --backtitle "Cocina LG G3 $VERSION"  --radiolist "Seleccione la opcion que desee:" 25 100 4 \
+        1 "Descargar firmware" on \
+        2 "Seleccionar firmware" off \
+        3 "Desempaquetar kdz" off \
+        4 "Trabajar con system" off\
+        5 "Mods y otros" off \
+        6 "Salir" off 	2>$INPUT
+
+menu=$(cat $INPUT)
+
+
+
+case $menu in
+	1) download;;
+	2) seleccionar;;
+	3) desempaquetar;;
+	4) system;;
+	5) mods;;
+	6) salir;;
+esac
+}
+
+firmware

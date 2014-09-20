@@ -1,0 +1,43 @@
+#!/bin/bash
+
+INPUT="/tmp/datos";
+VERSION=$(cat datos/version);
+
+
+#Menu principal
+principal() {
+
+dialog --title 'Menu principal' --backtitle "Cocina LG G3 $VERSION"  --radiolist "Seleccione la opcion que desee:" 25 100 100 \
+        1 "Configuracion" on \
+        2 "Firmware" off \
+        3 "Kernel" off \
+        4 "Crear rom" off\
+        5 "Otros" off \
+        6 "Salir" off 	2>$INPUT
+
+menu=$(cat $INPUT)
+
+
+
+case $menu in
+	1) bash rom;;
+	2) bash firmware;;
+	3) $vi_editor;;
+	4) $vi_editor;;
+	5) salir;;
+	6) salir;;
+esac
+
+
+
+}
+
+
+dialog --title "Cocina LG G3 $VERSION" --msgbox "Crea tus propias Roms facilmente" 5 50
+
+principal
+       
+       
+
+
+

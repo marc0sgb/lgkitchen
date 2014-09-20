@@ -1,0 +1,75 @@
+#!/bin/bash
+
+INPUT="/tmp/datos";
+VERSION=$(cat datos/version);
+
+
+rm datos/liroms;
+ls misroms >> datos/liroms;
+n=$(wc -l datos/liroms | cut -f 1 -d " ");
+dialog --msgbox "Actualmente tiene $n proyectos" 6 100;
+
+i=1;
+u=1;
+
+while read rom
+do
+
+COUNT=$[COUNT+1]
+
+roms[$i]="$i \"$rom\" "
+
+
+nombre="`sed -n 1p misroms/$rom/info`"
+nroms[$i]=$nombre
+echo $nombre;
+carp="`sed -n 5p misroms/$rom/info`"
+croms[$i]=$carp
+
+ROMS="${ROMS} ${COUNT} $nombre off "
+
+i=$(( $i + 1 ))
+
+done < datos/liroms
+
+
+cmd="(dialog --title 'Menu principal' --backtitle "Cocina LG G3 $VERSION"  --radiolist "Seleccione una rom:" 22 76 16)"
+
+
+options=(${ROMS})
+menu=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty )
+
+case $? in
+0)
+
+dialog --title "Cocina LG G3 $VERSION" --msgbox "Informacion de ${nroms[$menu]}: " 5 50 
+dialog --textbox ${croms[$menu]}/info 100 100
+dialog --title "Cocina LG G3 $VERSION"  --yesno "¿Desea editar la informacion?" 6 100 
+case $? in
+   0) 
+      dialog --title "Cocina LG G3 $VERSION" --inputbox "Establezca el nombre de su ROM" 5 100 2>$INPUT;
+		nombre=$(cat $INPUT)
+		dialog --title "Cocina LG G3 $VERSION" --inputbox "Establezca la version ROM" 5 100 2>$INPUT;
+		romv=$(cat $INPUT)
+		dialog --title "Cocina LG G3 $VERSION" --inputbox "Establezca el autor de la rom" 5 100 2>$INPUT;
+		autor=$(cat $INPUT)
+		dialog --title "Cocina LG G3 $VERSION" --inputbox "Introduzca una breve descripcion" 50 100 2>$INPUT;
+		desc=$(cat $INPUT)
+      echo $nombre > ${croms[$menu]}/info
+      echo $romv >> ${croms[$menu]}/info
+      echo $autor >> ${croms[$menu]}/info
+      echo $desc >> ${croms[$menu]}/info
+      echo ${croms[$menu]} >> ${croms[$menu]}/info
+      dialog --title "Cocina LG G3 $VERSION"  --textbox "Informacion:" 6 100
+      dialog --textbox ${croms[$menu]}/info 100 100
+		principal;;
+		
+   1) principal;;
+   
+   255) principal;;
+   esac
+
+;;
+1)menu;;
+255)menu;;
+esac
